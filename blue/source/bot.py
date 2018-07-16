@@ -343,12 +343,12 @@ async def delhunt(ctx, name: str=None, amount: str=None):
             item_cost = int(value) * amount
             cash_to_give = item_cost / len(mention_list)
             cash_to_give = round(cash_to_give)
+            error_break = False
             for person in mention_list:
                 if person not in config.data.get('users'):     
                     print(f'{person} has been added')
                     new_user = {"donated": {}, "cash": 0}
                     config.data['users'][person] = new_user
-                    config.save()
 
                 users_cash = config.data.get('users').get(person).get('cash')
                 new_users_cash = users_cash - int(cash_to_give)
@@ -357,17 +357,21 @@ async def delhunt(ctx, name: str=None, amount: str=None):
                     get_hunt = "hunt"
                     if get_hunt not in config.data.get('users').get(person).get('donated'):
                         config.data['users'][person]['donated']['hunt'] = int(cash_to_give)
-                        config.save()
+
                     else:
                         old_hunt = config.data.get('users').get(person).get('donated').get('hunt')
                         new_hunt = old_hunt - cash_to_give
                         config.data['users'][person]['donated']['hunt'] = int(new_hunt)
-                        config.save()
-                else:
-                    await bot.say('It seems you\'d be giving people negative money..that doesn\'t seem right..')
-                    return
 
-            await bot.say(f'Users hunt donations have been removed by ${cash_to_give:,}.')
+                else:
+                    await bot.say(f'It seems you\'d be giving <@{person}> negative money..that doesn\'t seem right..')
+                    error_break = True
+                    break
+
+            config.save()
+            if not error_break:
+                await bot.say(f'Users hunt donations have been removed by ${cash_to_give:,}.')
+                return
     else:
         await bot.say(f'{ctx.message.author.mention}, you are not authorized for this command.')
         return
@@ -402,10 +406,15 @@ async def sailors(ctx):
     cash_list = ''
     for place, entry in leaderboard[:10]:
         user_donated = users[entry]['cash']
-        percent = (user_donated / final_total) * 100
+        if user_donated is 0:
+            percent = 0
+            cash_list += f'${user_donated} ({percent})%\n'
+        else:
+            percent = (user_donated / final_total) * 100
+            cash_list += f'${user_donated:,} ({percent:.2f}%)\n'
+
         player = await bot.get_user_info(entry)
         players_list += f'**#{place+1}** {player.mention}\n'
-        cash_list += f'${user_donated:,} ({percent:.2f}%)\n'
 
     embed.add_field(name='Players', value=players_list)
     embed.add_field(name='Donated', value=cash_list)
