@@ -344,7 +344,7 @@ async def delhunt(ctx, name: str=None, amount: str=None):
             cash_to_give = item_cost / len(mention_list)
             cash_to_give = round(cash_to_give)
             for person in mention_list:
-                if person not in config.data.get('users'):
+                if person not in config.data.get('users'):     
                     print(f'{person} has been added')
                     new_user = {"donated": {}, "cash": 0}
                     config.data['users'][person] = new_user
@@ -352,19 +352,20 @@ async def delhunt(ctx, name: str=None, amount: str=None):
 
                 users_cash = config.data.get('users').get(person).get('cash')
                 new_users_cash = users_cash - int(cash_to_give)
-                if new_users_cash < 0:
+                if new_users_cash > -1:
+                    config.data['users'][person]['cash'] = new_users_cash
+                    get_hunt = "hunt"
+                    if get_hunt not in config.data.get('users').get(person).get('donated'):
+                        config.data['users'][person]['donated']['hunt'] = int(cash_to_give)
+                        config.save()
+                    else:
+                        old_hunt = config.data.get('users').get(person).get('donated').get('hunt')
+                        new_hunt = old_hunt - cash_to_give
+                        config.data['users'][person]['donated']['hunt'] = int(new_hunt)
+                        config.save()
+                else:
                     await bot.say('It seems you\'d be giving people negative money..that doesn\'t seem right..')
                     return
-                config.data['users'][person]['cash'] = new_users_cash
-                get_hunt = "hunt"
-                if get_hunt not in config.data.get('users').get(person).get('donated'):
-                    config.data['users'][person]['donated']['hunt'] = int(cash_to_give)
-                    config.save()
-                else:
-                    old_hunt = config.data.get('users').get(person).get('donated').get('hunt')
-                    new_hunt = old_hunt - cash_to_give
-                    config.data['users'][person]['donated']['hunt'] = int(new_hunt)
-                    config.save()
 
             await bot.say(f'Users hunt donations have been removed by ${cash_to_give:,}.')
     else:
