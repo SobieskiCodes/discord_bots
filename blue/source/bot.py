@@ -2,6 +2,9 @@ from discord.ext import commands
 import discord
 import asyncio
 import pyson
+import os, errno
+import datetime
+
 
 config = pyson.Pyson('data.json')
 token = config.data.get('config').get('token')
@@ -41,27 +44,44 @@ async def connect():
 
 
 @bot.command(pass_context=True)
+async def ping(ctx):
+    now = datetime.datetime.utcnow()
+    old_message = now - ctx.message.timestamp
+    old_delta = old_message.microseconds
+    milsec_old = int(old_delta // 1000)
+    test_message = await bot.say(f"Checking delay {milsec_old}")
+    new_time = now - test_message.timestamp
+    delta = new_time.microseconds
+    milsec = int(delta // 1000)
+    await bot.edit_message(test_message, new_content=f'{milsec}ms round trip time from my message until response.')
+
+
+@bot.command(pass_context=True)
 async def details(ctx):
     '''details DM's a log of all current period transactions
 
     Usage:
     !details
     '''
+    if not os.path.exists(f'{ctx.message.author.id}.txt'):
+        await bot.say(f"I don\'t have any details for '{ctx.message.author.mention}' yet.")
+        return
 
-    with open(f'{ctx.message.author.id}.text', 'r') as data:
-        lines = ''
-        for line in data:
-            if line != '\n':
-                lines += line
+    else:
+        with open(f'{ctx.message.author.id}.txt', 'r') as data:
+            lines = ''
+            for line in data:
+                if line != '\n':
+                    lines += line
 
-        if len(lines) == 0:
-            lines = "Nothing to show"
-        else:
-            lines = ("\n".join(lines.split("\n")))
+            if len(lines) == 0:
+                lines = "Nothing to show"
+            else:
+                lines = ("\n".join(lines.split("\n")))
 
-    embed = discord.Embed(title="Details", colour=discord.Colour(0x278d89), description=f'{lines}')
-    await bot.send_message(ctx.message.author, embed=embed)
-    await bot.say(f'{ctx.message.author.mention} Sending it now..')
+        embed = discord.Embed(title="Details", colour=discord.Colour(0x278d89), description=f'{lines}')
+        await bot.send_message(ctx.message.author, embed=embed)
+        await bot.say(f'{ctx.message.author.mention} Sending it now..')
 
 
 @bot.command(pass_context=True)
@@ -119,7 +139,7 @@ async def add(ctx, name: str = None, amount: str=None):
             new_item_amount = old_item_amount + amount
             config.data['users'][ctx.message.author.id]['donated'][name] = new_item_amount
             config.save()
-        with open(f'{ctx.message.author.id}.text', 'a+') as data:
+        with open(f'{ctx.message.author.id}.txt', 'a+') as data:
             now = str(ctx.message.timestamp)
             now = now[:-7]
             data.write(f'{now}: {ctx.message.content}\n')
@@ -178,7 +198,7 @@ async def delitem(ctx, name: str = None, amount: str=None):
             config.data['users'][ctx.message.author.id]['cash'] = int(new_cash)
             config.data['users'][ctx.message.author.id]['donated'][name] = new_item_amount
             config.save()
-        with open(f'{ctx.message.author.id}.text', 'a+') as data:
+        with open(f'{ctx.message.author.id}.txt', 'a+') as data:
             now = str(ctx.message.timestamp)
             now = now[:-7]
             data.write(f'{now}: {ctx.message.content}\n')
@@ -294,12 +314,29 @@ async def huntsplit(ctx, name: str=None, amount: str=None):
             if get_hunt not in config.data.get('users').get(person).get('donated'):
                 config.data['users'][person]['donated']['hunt'] = int(cash_to_give)
                 config.save()
+                with open(f'{person}.txt', 'a+') as data:
+                    player = await bot.get_user_info(person)
+                    now = str(ctx.message.timestamp)
+                    now = now[:-7]
+                    data.write(f'{now}: !huntsplit {player} {cash_to_give:,}\n')
+                    data.close()
             else:
                 old_hunt = config.data.get('users').get(person).get('donated').get('hunt')
                 new_hunt = old_hunt + cash_to_give
                 config.data['users'][person]['donated']['hunt'] = int(new_hunt)
                 config.save()
+                with open(f'{person}.txt', 'a+') as data:
+                    player = await bot.get_user_info(person)
+                    now = str(ctx.message.timestamp)
+                    now = now[:-7]
+                    data.write(f'{now}: !huntsplit {player} {cash_to_give:,}\n')
+                    data.close()
 
+        with open(f'admin.txt', 'a+') as data:
+            now = str(ctx.message.timestamp)
+            now = now[:-7]
+            data.write(f'{now}: {ctx.message.author.name}:{ctx.message.content}\n')
+            data.close()
         await bot.say(f'Users donations have been updated by ${cash_to_give:,}.')
 
 
@@ -357,11 +394,23 @@ async def delhunt(ctx, name: str=None, amount: str=None):
                     get_hunt = "hunt"
                     if get_hunt not in config.data.get('users').get(person).get('donated'):
                         config.data['users'][person]['donated']['hunt'] = int(cash_to_give)
+                        with open(f'{person}.txt', 'a+') as data:
+                            player = await bot.get_user_info(person)
+                            now = str(ctx.message.timestamp)
+                            now = now[:-7]
+                            data.write(f'{now}: !delhunt {player} {cash_to_give:,}\n')
+                            data.close()
 
                     else:
                         old_hunt = config.data.get('users').get(person).get('donated').get('hunt')
                         new_hunt = old_hunt - cash_to_give
                         config.data['users'][person]['donated']['hunt'] = int(new_hunt)
+                        with open(f'{person}.txt', 'a+') as data:
+                            player = await bot.get_user_info(person)
+                            now = str(ctx.message.timestamp)
+                            now = now[:-7]
+                            data.write(f'{now}: !delhunt {player} {cash_to_give:,}\n')
+                            data.close()
 
                 else:
                     await bot.say(f'It seems you\'d be giving <@{person}> negative money..that doesn\'t seem right..')
@@ -370,6 +419,11 @@ async def delhunt(ctx, name: str=None, amount: str=None):
 
             config.save()
             if not error_break:
+                with open(f'admin.txt', 'a+') as data:
+                    now = str(ctx.message.timestamp)
+                    now = now[:-7]
+                    data.write(f'{now}: {ctx.message.author.name}: {ctx.message.content}\n')
+                    data.close()
                 await bot.say(f'Users hunt donations have been removed by ${cash_to_give:,}.')
                 return
     else:
@@ -431,20 +485,45 @@ async def reset(ctx):
     '''
     if ctx.message.author is ctx.message.server.owner or ctx.message.author.id in config.data.get('config'):
         await bot.send_typing(ctx.message.channel)
+        with open(f'admin.txt', 'a+') as data:
+            now = str(ctx.message.timestamp)
+            now = now[:-7]
+            data.write(f'{now}: {ctx.message.author.name}: {ctx.message.content}\n')
+            data.close()
+
+        if not os.path.exists("backups"):
+            try:
+                os.makedirs("backups")
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+
+        date = datetime.date.today()
+        if not os.path.exists(f"backups/{date}"):
+            try:
+                os.makedirs(f"backups/{date}")
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+
+        for file in os.listdir("."):
+            if file.endswith(".txt"):
+                move = (os.path.join(f"backups\{date}", file))
+                os.rename(file, move)
+
         user_list = []
         for user in config.data.get('users'):
             user_list.append(user)
+
         for person in user_list:
-            with open(f'{person}.text', 'w') as data:
-                data.seek(0)
-                data.truncate()
-            print(f'{person}.text wiped')
             config.data['users'].pop(person, None)
             config.save()
 
         await bot.say('Reset complete.')
+
     else:
         await bot.say(f'{ctx.message.author.mention}, you are not authorized for this command.')
+        return
 
 
 @bot.command(pass_context=True)
@@ -462,6 +541,11 @@ async def addadmin(ctx, user_id: str=None):
             await bot.say('That user doesn\'t seem to be in this server.')
             return
         else:
+            with open(f'admin.txt', 'a+') as data:
+                now = str(ctx.message.timestamp)
+                now = now[:-7]
+                data.write(f'{now}:{ctx.message.author.name}: {ctx.message.content}\n')
+                data.close()
             if user_id not in config.data.get('config'):
                 config.data['config'][user_id] = True
                 config.save()
@@ -488,6 +572,11 @@ async def deladmin(ctx, user_id: str=None):
             await bot.say('That user doesn\'t seem to be in this server.')
             return
         else:
+            with open(f'admin.txt', 'a+') as data:
+                now = str(ctx.message.timestamp)
+                now = now[:-7]
+                data.write(f'{now}: {ctx.message.author.name}: {ctx.message.content}\n')
+                data.close()
             if user_id in config.data.get('config'):
                 config.data['config'].pop(user_id, None)
                 config.save()
