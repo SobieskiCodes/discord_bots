@@ -68,7 +68,7 @@ async def details(ctx):
         return
 
     else:
-        with open(f'{ctx.message.author.id}.txt', 'r') as data:
+        with open(f'{ctx.message.author.id}.txt', 'r', encoding='utf8') as data:
             lines = ''
             for line in data:
                 if line != '\n':
@@ -98,6 +98,10 @@ async def add(ctx, name: str = None, amount: str=None):
         help_description = bot.formatter.format_help_for(ctx, bot.commands.get('add'))[0]
         embed = discord.Embed(description=f'{help_description}', colour=discord.Colour(0xAE0901))
         await bot.say(embed=embed)
+        return
+
+    if amount == 0:
+        await bot.say('Trying to be sneaky with adding no items eh?')
         return
 
     name = name.lower()
@@ -139,7 +143,7 @@ async def add(ctx, name: str = None, amount: str=None):
             new_item_amount = old_item_amount + amount
             config.data['users'][ctx.message.author.id]['donated'][name] = new_item_amount
             config.save()
-        with open(f'{ctx.message.author.id}.txt', 'a+') as data:
+        with open(f'{ctx.message.author.id}.txt', 'a+', encoding='utf8') as data:
             now = str(ctx.message.timestamp)
             now = now[:-7]
             data.write(f'{now}: {ctx.message.content}\n')
@@ -198,7 +202,7 @@ async def delitem(ctx, name: str = None, amount: str=None):
             config.data['users'][ctx.message.author.id]['cash'] = int(new_cash)
             config.data['users'][ctx.message.author.id]['donated'][name] = new_item_amount
             config.save()
-        with open(f'{ctx.message.author.id}.txt', 'a+') as data:
+        with open(f'{ctx.message.author.id}.txt', 'a+', encoding='utf8') as data:
             now = str(ctx.message.timestamp)
             now = now[:-7]
             data.write(f'{now}: {ctx.message.content}\n')
@@ -314,7 +318,7 @@ async def huntsplit(ctx, name: str=None, amount: str=None):
             if get_hunt not in config.data.get('users').get(person).get('donated'):
                 config.data['users'][person]['donated']['hunt'] = int(cash_to_give)
                 config.save()
-                with open(f'{person}.txt', 'a+') as data:
+                with open(f'{person}.txt', 'a+', encoding='utf8') as data:
                     player = await bot.get_user_info(person)
                     now = str(ctx.message.timestamp)
                     now = now[:-7]
@@ -325,14 +329,14 @@ async def huntsplit(ctx, name: str=None, amount: str=None):
                 new_hunt = old_hunt + cash_to_give
                 config.data['users'][person]['donated']['hunt'] = int(new_hunt)
                 config.save()
-                with open(f'{person}.txt', 'a+') as data:
+                with open(f'{person}.txt', 'a+', encoding='utf8') as data:
                     player = await bot.get_user_info(person)
                     now = str(ctx.message.timestamp)
                     now = now[:-7]
                     data.write(f'{now}: !huntsplit {player} {cash_to_give:,}\n')
                     data.close()
 
-        with open(f'admin.txt', 'a+') as data:
+        with open(f'admin.txt', 'a+', encoding='utf8') as data:
             now = str(ctx.message.timestamp)
             now = now[:-7]
             data.write(f'{now}: {ctx.message.author.name}:{ctx.message.content}\n')
@@ -394,7 +398,7 @@ async def delhunt(ctx, name: str=None, amount: str=None):
                     get_hunt = "hunt"
                     if get_hunt not in config.data.get('users').get(person).get('donated'):
                         config.data['users'][person]['donated']['hunt'] = int(cash_to_give)
-                        with open(f'{person}.txt', 'a+') as data:
+                        with open(f'{person}.txt', 'a+', encoding='utf8') as data:
                             player = await bot.get_user_info(person)
                             now = str(ctx.message.timestamp)
                             now = now[:-7]
@@ -405,7 +409,7 @@ async def delhunt(ctx, name: str=None, amount: str=None):
                         old_hunt = config.data.get('users').get(person).get('donated').get('hunt')
                         new_hunt = old_hunt - cash_to_give
                         config.data['users'][person]['donated']['hunt'] = int(new_hunt)
-                        with open(f'{person}.txt', 'a+') as data:
+                        with open(f'{person}.txt', 'a+', encoding='utf8') as data:
                             player = await bot.get_user_info(person)
                             now = str(ctx.message.timestamp)
                             now = now[:-7]
@@ -419,7 +423,7 @@ async def delhunt(ctx, name: str=None, amount: str=None):
 
             config.save()
             if not error_break:
-                with open(f'admin.txt', 'a+') as data:
+                with open(f'admin.txt', 'a+', encoding='utf8') as data:
                     now = str(ctx.message.timestamp)
                     now = now[:-7]
                     data.write(f'{now}: {ctx.message.author.name}: {ctx.message.content}\n')
@@ -485,7 +489,7 @@ async def reset(ctx):
     '''
     if ctx.message.author is ctx.message.server.owner or ctx.message.author.id in config.data.get('config'):
         await bot.send_typing(ctx.message.channel)
-        with open(f'admin.txt', 'a+') as data:
+        with open(f'admin.txt', 'a+', encoding='utf8') as data:
             now = str(ctx.message.timestamp)
             now = now[:-7]
             data.write(f'{now}: {ctx.message.author.name}: {ctx.message.content}\n')
@@ -508,8 +512,20 @@ async def reset(ctx):
 
         for file in os.listdir("."):
             if file.endswith(".txt"):
-                move = (os.path.join(f"backups\{date}", file))
-                os.rename(file, move)
+                try:
+                    move = (os.path.join(f"backups\{date}", file))
+                    os.rename(file, move)
+                except:
+                    move = (os.path.join(f"backups\{date}", file))
+                    counter = 0
+                    while os.path.exists(move):
+                        x = 1
+                        y = x + counter
+                        file_name = f"{file[:-4]}"
+                        new_file_name = f"{file_name}({y}).txt"
+                        counter += 1
+                        move = (os.path.join(f"backups\{date}", new_file_name))
+                    os.rename(file, move)
 
         user_list = []
         for user in config.data.get('users'):
@@ -541,7 +557,7 @@ async def addadmin(ctx, user_id: str=None):
             await bot.say('That user doesn\'t seem to be in this server.')
             return
         else:
-            with open(f'admin.txt', 'a+') as data:
+            with open(f'admin.txt', 'a+', encoding='utf8') as data:
                 now = str(ctx.message.timestamp)
                 now = now[:-7]
                 data.write(f'{now}:{ctx.message.author.name}: {ctx.message.content}\n')
@@ -572,7 +588,7 @@ async def deladmin(ctx, user_id: str=None):
             await bot.say('That user doesn\'t seem to be in this server.')
             return
         else:
-            with open(f'admin.txt', 'a+') as data:
+            with open(f'admin.txt', 'a+', encoding='utf8') as data:
                 now = str(ctx.message.timestamp)
                 now = now[:-7]
                 data.write(f'{now}: {ctx.message.author.name}: {ctx.message.content}\n')
