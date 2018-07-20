@@ -208,7 +208,7 @@ async def delitem(ctx, name: str = None, amount: str=None):
             now = now[:-7]
             data.write(f'{now}: {ctx.message.content}\n')
             data.close()
-        await bot.say(f"{ctx.message.author.mention} i have removed '{amount} {name}' and ${income:,}.")
+        await bot.say(f"{ctx.message.author.mention} I have removed '{amount} {name}' and ${income:,}.")
         return
 
 
@@ -323,7 +323,7 @@ async def huntsplit(ctx, name: str=None, amount: str=None):
                     player = ctx.message.server.get_member(person)
                     now = str(ctx.message.timestamp)
                     now = now[:-7]
-                    data.write(f'{now}: !huntsplit {player} {cash_to_give:,}\n')
+                    data.write(f'{now}: {player} {cash_to_give:,} from huntsplit\n')
                     data.close()
             else:
                 old_hunt = config.data.get('users').get(person).get('donated').get('hunt')
@@ -334,7 +334,7 @@ async def huntsplit(ctx, name: str=None, amount: str=None):
                     player = ctx.message.server.get_member(person)
                     now = str(ctx.message.timestamp)
                     now = now[:-7]
-                    data.write(f'{now}: !huntsplit {player} {cash_to_give:,}\n')
+                    data.write(f'{now}: {player} {cash_to_give:,} from huntsplit\n')
                     data.close()
 
         with open(f'admin.txt', 'a+', encoding='utf8') as data:
@@ -403,7 +403,7 @@ async def delhunt(ctx, name: str=None, amount: str=None):
                             player = ctx.message.server.get_member(person)
                             now = str(ctx.message.timestamp)
                             now = now[:-7]
-                            data.write(f'{now}: !delhunt {player} {cash_to_give:,}\n')
+                            data.write(f'{now}: author: {ctx.message.author.name} !delhunt {player} {cash_to_give:,}\n')
                             data.close()
 
                     else:
@@ -414,7 +414,7 @@ async def delhunt(ctx, name: str=None, amount: str=None):
                             player = ctx.message.server.get_member(person)
                             now = str(ctx.message.timestamp)
                             now = now[:-7]
-                            data.write(f'{now}: !delhunt {player} {cash_to_give:,}\n')
+                            data.write(f'{now}: author: {ctx.message.author.name} !delhunt {player} {cash_to_give:,}\n')
                             data.close()
 
                 else:
@@ -553,7 +553,7 @@ async def addadmin(ctx, user_id: str=None):
         if not user_id.isdigit():
             await bot.say('That isn\'t a valid ID.')
             return
-        
+
         get_user = ctx.message.server.get_member(user_id)
         if get_user not in ctx.message.server.members:
             await bot.say('That user doesn\'t seem to be in this server.')
