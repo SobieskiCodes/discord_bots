@@ -101,7 +101,7 @@ async def add(ctx, name: str = None, amount: str=None):
         await bot.say(embed=embed)
         return
 
-    if amount == 0:
+    if not amount:
         await bot.say('Trying to be sneaky with adding no items eh?')
         return
 
