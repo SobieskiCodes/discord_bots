@@ -10,19 +10,19 @@ config = pyson.Pyson('data.json')
 token = config.data.get('config').get('token')
 
 Items = {
-    "neidan": 100000,
-    "spike": 82000,
-    "coin": 100000,
-    "goblet": 100000000,
-    "skin": 42800,
-    "whisker": 100000000,
-    "fin": 100000000,
-    "horn": 53700,
-    "shell": 409200,
-    "steel": 100000000,
-    "jaw": 52400,
-    "tongue": 100000000,
-    "amethyst": 100000000,
+    "neidans": 100000,
+    "spikes": 82000,
+    "coins": 100000,
+    "goblets": 100000000,
+    "skins": 42800,
+    "whiskers": 100000000,
+    "fins": 100000000,
+    "horns": 53700,
+    "shells": 409200,
+    "steels": 100000000,
+    "jaws": 52400,
+    "tongues": 100000000,
+    "amethysts": 100000000,
 }
 
 bot = commands.Bot(command_prefix='!')
@@ -75,14 +75,14 @@ async def details(ctx):
                 if line != '\n':
                     lines += line
 
-            if len(lines) == 0:
+            if not lines:
                 lines = "Nothing to show"
             else:
                 lines = ("\n".join(lines.split("\n")))
 
         embed = discord.Embed(title="Details", colour=discord.Colour(0x278d89), description=f'{lines}')
         await bot.send_message(ctx.message.author, embed=embed)
-        await bot.say(f'{ctx.message.author.mention} Sending it now..')
+        await bot.say(f'{ctx.message.author.mention}, sending it now..')
 
 
 @bot.command(pass_context=True)
@@ -106,8 +106,8 @@ async def add(ctx, name: str = None, amount: str=None):
         return
 
     name = name.lower()
-    if f"{name[:-1]}" in Items:
-        name = name[:-1]
+    if f"{name}s" in Items:
+        name = f"{name}s"
 
     if name not in Items:
         embed = discord.Embed(description=f"It seems '{name}' isn't an item you can add, valid items are: \nItem names:"
@@ -170,8 +170,8 @@ async def delitem(ctx, name: str = None, amount: str=None):
         return
 
     name = name.lower()
-    if f"{name[:-1]}" in Items:
-        name = name[:-1]
+    if f"{name}s" in Items:
+        name = f"{name}s"
 
     if name not in Items:
         embed = discord.Embed(description=f"It seems '{name}' isn't an item you can add, valid items are: \nItem names:"
@@ -287,13 +287,13 @@ async def huntsplit(ctx, name: str=None, amount: str=None):
     for mention in ctx.message.mentions:
         mention_list.append(mention.id)
 
-    if len(mention_list) == 0:
+    if not mention_list:
         await bot.say('It seems you forgot to mention who was part of the hunt!')
         return
 
     name = name.lower()
-    if f"{name[:-1]}" in Items:
-        name = name[:-1]
+    if f"{name}s" in Items:
+        name = f"{name}s"
 
     if name not in Items:
         await bot.say(f"I can\'t seem to find '{name}' in the item list")
@@ -367,13 +367,13 @@ async def delhunt(ctx, name: str=None, amount: str=None):
         for mention in ctx.message.mentions:
             mention_list.append(mention.id)
 
-        if len(mention_list) == 0:
+        if not mention_list:
             await bot.say('It seems you forgot to mention who was part of the hunt!')
             return
 
         name = name.lower()
-        if f"{name[:-1]}" in Items:
-            name = name[:-1]
+        if f"{name}s" in Items:
+            name = f"{name}s"
 
         if name not in Items:
             await bot.say(f"I can\'t seem to find '{name}' in the item list")
@@ -443,7 +443,7 @@ async def sailors(ctx):
     Usage:
     !sailors
     '''
-    if len(config.data.get('users')) == 0:
+    if not config.data.get('users'):
         await bot.say('No users have donated!')
         return
 
@@ -549,10 +549,11 @@ async def addadmin(ctx, user_id: str=None):
     if not user_id:
         return
 
-    if ctx.message.author == ctx.message.server.owner:
+    if ctx.message.author is ctx.message.server.owner:
         if not user_id.isdigit():
             await bot.say('That isn\'t a valid ID.')
             return
+        
         get_user = ctx.message.server.get_member(user_id)
         if get_user not in ctx.message.server.members:
             await bot.say('That user doesn\'t seem to be in this server.')
@@ -579,7 +580,7 @@ async def deladmin(ctx, user_id: str=None):
     if not user_id:
         return
 
-    if ctx.message.author == ctx.message.server.owner:
+    if ctx.message.author is ctx.message.server.owner:
         if not user_id.isdigit():
             await bot.say('That isn\'t a valid ID.')
             return
