@@ -553,7 +553,7 @@ async def addadmin(ctx, user_id: str=None):
         if not user_id.isdigit():
             await bot.say('That isn\'t a valid ID.')
             return
-        get_user = await bot.get_user_info(user_id)
+        get_user = ctx.message.server.get_member(user_id)
         if get_user not in ctx.message.server.members:
             await bot.say('That user doesn\'t seem to be in this server.')
             return
@@ -584,7 +584,7 @@ async def deladmin(ctx, user_id: str=None):
             await bot.say('That isn\'t a valid ID.')
             return
 
-        get_user = await bot.get_user_info(user_id)
+        get_user = ctx.message.server.get_member(user_id)
         if get_user not in ctx.message.server.members:
             await bot.say('That user doesn\'t seem to be in this server.')
             return
