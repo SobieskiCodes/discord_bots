@@ -43,6 +43,7 @@ async def connect():
             await asyncio.sleep(5)
 
 
+
 @bot.command(pass_context=True)
 async def ping(ctx):
     now = datetime.datetime.utcnow()
@@ -319,7 +320,7 @@ async def huntsplit(ctx, name: str=None, amount: str=None):
                 config.data['users'][person]['donated']['hunt'] = int(cash_to_give)
                 config.save()
                 with open(f'{person}.txt', 'a+', encoding='utf8') as data:
-                    player = await bot.get_user_info(person)
+                    player = ctx.message.server.get_member(person)
                     now = str(ctx.message.timestamp)
                     now = now[:-7]
                     data.write(f'{now}: !huntsplit {player} {cash_to_give:,}\n')
@@ -330,7 +331,7 @@ async def huntsplit(ctx, name: str=None, amount: str=None):
                 config.data['users'][person]['donated']['hunt'] = int(new_hunt)
                 config.save()
                 with open(f'{person}.txt', 'a+', encoding='utf8') as data:
-                    player = await bot.get_user_info(person)
+                    player = ctx.message.server.get_member(person)
                     now = str(ctx.message.timestamp)
                     now = now[:-7]
                     data.write(f'{now}: !huntsplit {player} {cash_to_give:,}\n')
@@ -399,7 +400,7 @@ async def delhunt(ctx, name: str=None, amount: str=None):
                     if get_hunt not in config.data.get('users').get(person).get('donated'):
                         config.data['users'][person]['donated']['hunt'] = int(cash_to_give)
                         with open(f'{person}.txt', 'a+', encoding='utf8') as data:
-                            player = await bot.get_user_info(person)
+                            player = ctx.message.server.get_member(person)
                             now = str(ctx.message.timestamp)
                             now = now[:-7]
                             data.write(f'{now}: !delhunt {player} {cash_to_give:,}\n')
@@ -410,7 +411,7 @@ async def delhunt(ctx, name: str=None, amount: str=None):
                         new_hunt = old_hunt - cash_to_give
                         config.data['users'][person]['donated']['hunt'] = int(new_hunt)
                         with open(f'{person}.txt', 'a+', encoding='utf8') as data:
-                            player = await bot.get_user_info(person)
+                            player = ctx.message.server.get_member(person)
                             now = str(ctx.message.timestamp)
                             now = now[:-7]
                             data.write(f'{now}: !delhunt {player} {cash_to_give:,}\n')
@@ -471,7 +472,7 @@ async def sailors(ctx):
             percent = (user_donated / final_total) * 100
             cash_list += f'${user_donated:,} ({percent:.2f}%)\n'
 
-        player = await bot.get_user_info(entry)
+        player = ctx.message.server.get_member(entry)
         players_list += f'**#{place+1}** {player.mention}\n'
 
     embed.add_field(name='Players', value=players_list)
