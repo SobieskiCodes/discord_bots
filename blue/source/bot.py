@@ -4,6 +4,7 @@ import asyncio
 import pyson
 import os, errno
 import datetime
+import time
 
 
 config = pyson.Pyson('data.json')
@@ -86,7 +87,7 @@ async def details(ctx):
 
 
 @bot.command(pass_context=True)
-async def add(ctx, name: str = None, amount: str=None):
+async def add(ctx, name: str = None, amount: str = None):
     '''Deposit items
 
     Usage:
@@ -94,13 +95,13 @@ async def add(ctx, name: str = None, amount: str=None):
     eg; !add spike 12
     Item names: Neidan, Spike, Coin, Goblet, Skin, Whisker, Fin, Horn, Shell, Steel, Jaw, Tongue, Amethyst
     '''
-
     if not name or not amount or not amount.isdigit():
         help_description = bot.formatter.format_help_for(ctx, bot.commands.get('add'))[0]
         embed = discord.Embed(description=f'{help_description}', colour=discord.Colour(0xAE0901))
         await bot.say(embed=embed)
         return
 
+    amount = int(amount)
     if not amount:
         await bot.say('Trying to be sneaky with adding no items eh?')
         return
@@ -116,14 +117,12 @@ async def add(ctx, name: str = None, amount: str=None):
         await bot.say(embed=embed)
         return
 
-    if int(amount) > 10000:
-        amount = int(amount)
+    if amount > 10000:
         await bot.say(f'{amount:,} seems like an unrealistic number..')
         return
 
     else:
         value = Items.get(name)
-        amount = int(amount)
         income = value * amount
         if ctx.message.author.id not in config.data.get('users'):
             new_user = {"donated": {}, "cash": 0}
@@ -605,4 +604,58 @@ async def deladmin(ctx, user_id: str=None):
         return
 
 
-bot.loop.run_until_complete(connect())
+@bot.command(pass_context=True)
+async def lewds(ctx):
+    """Want lewds?"""
+    await bot.say(f'No Lewds {ctx.message.author.mention}, only head pats!')
+    return
+
+
+@bot.command(pass_context=True)
+async def lullaby(ctx):
+    """When you can't sleep.."""
+    await bot.say(f'Night-night little mama.. \n If you don’t sleep, the crab will eat you.. \n Sleep tight,'
+                  f' {ctx.message.author.mention}')
+    return
+
+
+@bot.command(pass_context=True)
+async def mindmeld(ctx):
+    """The bully"""
+    await bot.say(f'Be careful, rumor has it this officer will shake down guild members for their sea monster loot! D:')
+    return
+
+
+@bot.command(pass_context=True)
+async def laenaz(ctx):
+    """The helper"""
+    await bot.say(f'Hey{ctx.message.author.mention}, Make sure you thank Laenaz for keeping manual track of all your'
+                  f' hard work before I was born!  They seriously deserve some snacks.  Or booze.')
+    return
+
+
+@bot.command(pass_context=True)
+async def dead(ctx):
+    """The leader"""
+    await bot.say(f'Great work, {ctx.message.author.mention}!  Now go kill more shit.')
+    return
+
+
+@bot.command(pass_context=True)
+async def credits(ctx):
+    """Credits"""
+    await bot.say(f'Special thanks to ProbsJustin#0001, without his help I would have never been made!  At least not well..')
+    return
+
+
+def start_bot():
+    while True:
+        try:
+            bot.loop.run_until_complete(connect())
+        except:
+            print('issues pls stop')
+            time.sleep(30)
+            raise
+
+
+start_bot()
