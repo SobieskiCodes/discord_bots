@@ -469,7 +469,6 @@ async def sailors(ctx):
     embed.set_thumbnail(url='https://cgg.website/lb.png')
     players_list = ''
     cash_list = ''
-    total_cash_list = []
     for place, entry in leaderboard[:10]:
         user_donated = users[entry]['cash']
         if user_donated is 0:
@@ -478,14 +477,13 @@ async def sailors(ctx):
         else:
             percent = (user_donated / final_total) * 100
             cash_list += f'${user_donated:,} ({percent:.2f}%)\n'
-            total_cash_list.append(int(config.data.get('users').get(entry).get('cash')))
 
         player = ctx.message.server.get_member(entry)
         players_list += f'**#{place+1}** {player.mention}\n'
 
     embed.add_field(name='Players', value=players_list)
     embed.add_field(name='Donated', value=cash_list)
-    embed.set_footer(text=f'Total Cash: ${sum(total_cash_list):,}')
+    embed.set_footer(text=f'Total Cash: ${final_total:,}')
     await bot.say(embed=embed)
 
 
