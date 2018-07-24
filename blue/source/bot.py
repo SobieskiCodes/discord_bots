@@ -44,6 +44,13 @@ async def connect():
             await asyncio.sleep(5)
 
 
+@bot.event
+async def on_member_remove(member: discord.Member):
+    if member.id in config.data.get('users'):
+        print(f'{member.name} has been removed')
+        config.data['users'].pop(member.id, None)
+        config.save()
+
 
 @bot.command(pass_context=True)
 async def ping(ctx):
@@ -386,7 +393,7 @@ async def delhunt(ctx, name: str=None, amount: str=None):
             cash_to_give = round(cash_to_give)
             error_break = False
             for person in mention_list:
-                if person not in config.data.get('users'):     
+                if person not in config.data.get('users'):
                     print(f'{person} has been added')
                     new_user = {"donated": {}, "cash": 0}
                     config.data['users'][person] = new_user
@@ -476,6 +483,7 @@ async def sailors(ctx):
 
     embed.add_field(name='Players', value=players_list)
     embed.add_field(name='Donated', value=cash_list)
+    embed.set_footer(text=f'Total Cash: {sum(cash_list)}')
     await bot.say(embed=embed)
 
 
