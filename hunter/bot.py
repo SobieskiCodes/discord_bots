@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import asyncio
-import pyson
 from pyson import Pyson
 config = Pyson('data.json')
 token = config.data.get('config').get('token')
@@ -13,7 +12,7 @@ async def on_ready():
     print('Bot ID: '+bot.user.id)
     print('Invite Link Below')
     print('------')
-    print('https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=8'.format(bot.user.id))
+    print('https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=0'.format(bot.user.id))
     print('------')
     for server in bot.servers:
         print("Connected to server: {} with id: {}".format(server, server.id))
@@ -38,13 +37,14 @@ async def add(ctx, name: str=None):
     else:
         if ctx.message.author.id not in config.data.get('users'):
             print('made it')
-            new_user = {"name": name, "wins": 0, "points": 0, "losses": 0}
+            new_user = {"name": name, "wins": 0, "points": 0, "losses": 0, "streak": 0}
             config.data['users'][ctx.message.author.id] = new_user
             config.save()
             await bot.say(f'{name} added under {ctx.message.author.mention}')
         else:
             await bot.say(f'{ctx.message.author.mention} it seems you are already in the database..')
             return
+
 
 @bot.command(pass_context=True)
 async def lb(ctx):
@@ -75,7 +75,7 @@ async def lb(ctx):
 
 @bot.command(pass_context=True)
 async def beat(ctx):
-    """!beat @user - you wond a duel against mentioned player"""
+    """!beat @user - you won a duel against mentioned player"""
     if not ctx.message.raw_mentions:
         await bot.say('No mentions')
         return
@@ -83,7 +83,13 @@ async def beat(ctx):
         if len(ctx.message.raw_mentions) > 1:
             await bot.say('Too many mentions')
             return
+
         else:
+            users = config.data.get('users')
+            if ctx.message.raw_mentions[0] not in users:
+                await bot.say(f"I couldn't find one of those users.")
+                return
+
             bonus = {5: 5, 10: 10, 15: 15, 20: 20, 25: 25, 30: 30, 35: 35, 40: 40, 45: 45, 50: 50}
             person_to_mention = ctx.message.server.get_member(ctx.message.raw_mentions[0]) #gets the only mentions ID
             player_wins = config.data.get('users').get(ctx.message.author.id).get('wins')
@@ -106,6 +112,60 @@ async def beat(ctx):
 
 
 @bot.command(pass_context=True)
+async def correct(ctx, p1: str=None, p2: str=None):
+    """!correct @user  @user - fix win/loss of two players
+    first user is the user you want to remove points/wins from
+    second user is the user you wish to remove the loss from (subract one loss)
+    """
+    if ctx.message.author is ctx.message.server.owner:
+        if not p1 or not p2:
+            await bot.say('It seems the format is incorrect, please try !correct @user1 @user2')
+            return
+
+        if len(ctx.message.raw_mentions) != 2:
+            await bot.say('The correct usage is !correct @user1 @user2')
+            return
+
+        else:
+            p1 = ctx.message.raw_mentions[0]
+            person1 = ctx.message.server.get_member(ctx.message.raw_mentions[0])
+            p2 = ctx.message.raw_mentions[1]
+            person2 = ctx.message.server.get_member(ctx.message.raw_mentions[1])
+            p1_wins = config.data.get('users').get(p1).get('wins')
+            p1_points = config.data.get('users').get(p1).get('points')
+            p1_streak = config.data.get('users').get(p1).get('streak')
+            p2_losses = config.data.get('users').get(p2).get('losses')
+            users = config.data.get('users')
+            if p1 not in users or p2 not in users:
+                await bot.say(f"I couldn't find one of those users.")
+                return
+
+            if p1_wins == 0:
+                await bot.say(f'{person1.mention} already has 0 wins.')
+                return
+            if p2_losses == 0:
+                await bot.say(f'{person2.mention} already has 0 losses.')
+                return
+            else:
+                config.data['users'][p1]['wins'] = p1_wins - 1
+                config.data['users'][p2]['losses'] = p2_losses - 1
+                bonus = {5: 5, 10: 10, 15: 15, 20: 20, 25: 25, 30: 30, 35: 35, 40: 40, 45: 45, 50: 50}
+                p1_points_to_lose = p1_points - 1
+                if p1_streak in bonus:
+                    p1_points_to_lose = p1_points - 1 - bonus.get(p1_streak)
+                config.data['users'][p1]['points'] = p1_points_to_lose
+                p1_new_streak = 0
+                if p1_streak != 0:
+                    p1_new_streak = p1_streak - 1
+                p1_new_streak = p1_streak - 1
+                config.data['users'][p1]['streak'] = p1_new_streak
+                config.save()
+
+    else:
+        await bot.say(f'{ctx.message.author.mention}, you are not authorized to use this command.')
+
+
+@bot.command(pass_context=True)
 async def streak(ctx):
     """!streak - Check your current win streak"""
     streak = config.data.get('users').get(ctx.message.author.id).get('streak')
@@ -124,5 +184,13 @@ async def wins(ctx):
     """!wins - Check your current wins"""
     wins = config.data.get('users').get(ctx.message.author.id).get('wins')
     await bot.say(f'{ctx.message.author.mention}, you have {wins} wins.')
+
+
+@bot.command(pass_context=True)
+async def points(ctx):
+    """!points - Check your current points"""
+    points = config.data.get('users').get(ctx.message.author.id).get('points')
+    await bot.say(f'{ctx.message.author.mention}, you have {points} points.')
+
 
 bot.loop.run_until_complete(connect())
