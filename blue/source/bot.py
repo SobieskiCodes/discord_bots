@@ -676,8 +676,8 @@ async def lullaby(ctx):
     return
 
 
-@bot.command(pass_context=True)
-async def mindmeld(ctx):
+@bot.command()
+async def mindmeld():
     """The bully"""
     await bot.say(f'Be careful, rumor has it this officer will shake down guild members for their sea monster loot! D:')
     return
@@ -698,8 +698,8 @@ async def dead(ctx):
     return
 
 
-@bot.command(pass_context=True)
-async def credits(ctx):
+@bot.command()
+async def credits():
     """Credits"""
     await bot.say(f'Special thanks to Justin#0001, without his help I would have never been made!  At least not well..')
     return
@@ -742,13 +742,13 @@ async def pat(ctx):
                           f'You must have done something nice.. Wish I got pats!')
             return
 
+
 def start_bot():
     while not bot.is_closed:
         try:
             bot.loop.run_until_complete(connect())
         except:
             time.sleep(90)
-
 
 
 start_bot()
