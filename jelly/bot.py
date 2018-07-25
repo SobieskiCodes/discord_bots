@@ -23,7 +23,7 @@ async def on_ready():
     print('Bot ID: '+bot.user.id)
     print('Invite Link Below')
     print('------')
-    print('https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=0'.format(bot.user.id))
+    print('https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=8'.format(bot.user.id))
     print('------')
     for server in bot.servers:
         asyncio.ensure_future(top10(server))
