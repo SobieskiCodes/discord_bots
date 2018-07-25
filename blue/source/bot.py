@@ -1,11 +1,12 @@
 from discord.ext import commands
 import discord
 import asyncio
+import json
 import pyson
 import os, errno
 import datetime
 import time
-
+import aiohttp
 
 config = pyson.Pyson('data.json')
 token = config.data.get('config').get('token')
@@ -485,6 +486,54 @@ async def sailors(ctx):
     embed.add_field(name='Donated', value=cash_list)
     embed.set_footer(text=f'Total Cash: ${final_total:,}')
     await bot.say(embed=embed)
+
+
+@bot.command(pass_context=True)
+async def export(ctx):
+    '''export uploads all users in json for viewing
+
+    Usage:
+    !export
+    '''
+    if not config.data.get('users'):
+        await bot.say('No users have donated!')
+        return
+
+    await bot.send_typing(ctx.message.channel)
+    users = config.data.get('users')
+    total = []
+    for user in users:
+        cash = config.data.get('users').get(user).get('cash')
+        total.append(int(cash))
+    final_total = 0
+    for cash_amount in total:
+        final_total = final_total + cash_amount
+
+    leaderboard = sorted(users, key=lambda x: users[x]['cash'], reverse=True)
+    leaderboard = list(enumerate(leaderboard))
+    for place, entry in leaderboard[:10]:
+        user_donated = users[entry]['cash']
+        with open(f'export.txt', 'a+', encoding='utf8') as data:
+            if user_donated is 0:
+                percent = 0
+                data.write(f'#{place+1} {player.name} ${user_donated:,} ({percent}%)\n')
+            else:
+                percent = (user_donated / final_total) * 100
+                player = ctx.message.server.get_member(entry)
+                data.write(f'#{place+1} {player.name} ${user_donated:,} ({percent:.2f}%)\n')
+        data.close()
+
+    async with aiohttp.ClientSession() as client:
+        with open(f'export.txt', 'r', encoding='utf8') as file:
+            data_to_send = file.read()
+            async with client.post('https://hastebin.com/documents', data=data_to_send) as resp:
+                assert resp.status == 200
+                response = await resp.text()
+                response = json.loads(response)
+                link = f'https://hastebin.com/{response["key"]}.txt'
+                await bot.say(f'{link}')
+        with open(f'export.txt', 'w', encoding='utf8') as data:
+            data.close()
 
 
 @bot.command(pass_context=True)
