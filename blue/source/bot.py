@@ -1,7 +1,6 @@
 from discord.ext import commands
 import discord
 import asyncio
-import json
 import pyson
 import os, errno
 import datetime
@@ -511,7 +510,7 @@ async def export(ctx):
 
     leaderboard = sorted(users, key=lambda x: users[x]['cash'], reverse=True)
     leaderboard = list(enumerate(leaderboard))
-    for place, entry in leaderboard[:10]:
+    for place, entry in leaderboard:
         user_donated = users[entry]['cash']
         with open(f'export.txt', 'a+', encoding='utf8') as data:
             if user_donated is 0:
@@ -528,8 +527,7 @@ async def export(ctx):
             data_to_send = file.read()
             async with client.post('https://hastebin.com/documents', data=data_to_send) as resp:
                 assert resp.status == 200
-                response = await resp.text()
-                response = json.loads(response)
+                response = await resp.json()
                 link = f'https://hastebin.com/{response["key"]}.txt'
                 await bot.say(f'{link}')
         with open(f'export.txt', 'w', encoding='utf8') as data:
