@@ -483,7 +483,7 @@ async def sailors(ctx):
 
     embed.add_field(name='Players', value=players_list)
     embed.add_field(name='Donated', value=cash_list)
-    embed.set_footer(text=f'Total Cash: {sum(cash_list)}')
+    embed.set_footer(text=f'Total Cash: ${final_total:,}')
     await bot.say(embed=embed)
 
 
