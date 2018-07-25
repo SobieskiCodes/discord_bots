@@ -37,11 +37,11 @@ async def on_ready():
 
 async def connect():
     print('Logging in...')
-    while not bot.is_closed:
-        try:
-            await bot.start(token)
-        except:
-            await asyncio.sleep(5)
+    try:
+        await bot.start(token)
+    except:
+        print('Failed to login.')
+        bot.loop.close()
 
 
 @bot.event
@@ -483,7 +483,7 @@ async def sailors(ctx):
 
     embed.add_field(name='Players', value=players_list)
     embed.add_field(name='Donated', value=cash_list)
-    embed.set_footer(text=f'Total Cash: ${final_total:,}')
+    embed.set_footer(text=f'Total Cash: {sum(cash_list)}')
     await bot.say(embed=embed)
 
 
@@ -652,18 +652,54 @@ async def dead(ctx):
 @bot.command(pass_context=True)
 async def credits(ctx):
     """Credits"""
-    await bot.say(f'Special thanks to ProbsJustin#0001, without his help I would have never been made!  At least not well..')
+    await bot.say(f'Special thanks to Justin#0001, without his help I would have never been made!  At least not well..')
     return
 
 
+@bot.command(pass_context=True)
+async def slap(ctx):
+    """Slap someone"""
+    if not ctx.message.raw_mentions:
+        await bot.say('No mentions')
+        return
+    else:
+        if len(ctx.message.raw_mentions) > 1:
+            await bot.say('too many mentions')
+            return
+        else:
+            person_to_mention = ctx.message.server.get_member(ctx.message.raw_mentions[0])
+            await bot.say(f'Hey {person_to_mention.mention}, {ctx.message.author.mention} just slapped you. Lil bitch.')
+            return
+
+
+@bot.command(pass_context=True)
+async def pat(ctx):
+    """Pat someone"""
+    if not ctx.message.raw_mentions:
+        await bot.say('No mentions')
+        return
+    else:
+        if len(ctx.message.raw_mentions) > 1:
+            await bot.say('too many mentions')
+            return
+
+        person_to_mention = ctx.message.server.get_member(ctx.message.raw_mentions[0])
+        if person_to_mention.id == bot.user.id:
+            await bot.say(f'{ctx.message.author.mention} gave me a head pat.. Im not blushing you are!')
+            return
+
+        else:
+            await bot.say(f'Hey {person_to_mention.mention}, {ctx.message.author.mention} gave your head a pat. '
+                          f'You must have done something nice.. Wish I got pats!')
+            return
+
 def start_bot():
-    while True:
+    while not bot.is_closed:
         try:
             bot.loop.run_until_complete(connect())
         except:
-            print('issues pls stop')
-            time.sleep(30)
-            raise
+            time.sleep(90)
+
 
 
 start_bot()
