@@ -2,10 +2,10 @@ import discord
 from discord.ext import commands
 import asyncio
 import pyson
-import re
 import random
 from datetime import datetime
 import time
+
 
 bot = commands.Bot(command_prefix='.')
 config = pyson.Pyson('data.json')
@@ -14,6 +14,7 @@ token = config.data.get('config').get('token')
 users = config.data.get('users')
 boottime = datetime.now()
 version = '0.0.9'
+
 
 
 @bot.event
@@ -25,6 +26,9 @@ async def on_ready():
     print('https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=0'.format(bot.user.id))
     print('------')
     for server in bot.servers:
+        asyncio.ensure_future(top10(server))
+        asyncio.ensure_future(giveaway(server))
+        asyncio.ensure_future(start_q_channel(server))
         print("Connected to server: {} with id: {}".format(server, server.id))
         for member in server.members:
             if not member.bot:
@@ -32,10 +36,8 @@ async def on_ready():
                     new_user = {"itemlist": {}, "points": 0}
                     config.data['users'][member.id] = new_user
                     config.save()
+                    await asyncio.sleep(1)
                     print('{} has been added'.format(member))
-    asyncio.ensure_future(giveaway())
-    asyncio.ensure_future(start_q_channel())
-    asyncio.ensure_future(top10())
     print('------')
 
 
@@ -46,6 +48,22 @@ async def connect():
             await bot.start(token)
         except:
             await asyncio.sleep(5)
+
+
+@bot.event
+async def on_server_join(server):
+    questions_channel = discord.utils.get(server.channels, name='questions', type=discord.ChannelType.text)
+    events_channel = discord.utils.get(server.channels, name='events', type=discord.ChannelType.text)
+    leaderboard_channel = discord.utils.get(server.channels, name='leaderboard', type=discord.ChannelType.text)
+    if not questions_channel:
+        await bot.create_channel(server, "questions", type=discord.ChannelType.text)
+
+    if not events_channel:
+        await bot.create_channel(server, "events", type=discord.ChannelType.text)
+
+    if not leaderboard_channel:
+        await bot.create_channel(server, "leaderboard", type=discord.ChannelType.text)
+
 
 
 @bot.command(pass_context=True, hidden=True)
@@ -99,7 +117,7 @@ async def purge(ctx, number):
     await bot.delete_messages(mgs)
 
 
-async def giveaway():
+async def giveaway(server):
     await bot.wait_until_ready()
     user_list = []
     for user in users:
@@ -107,7 +125,7 @@ async def giveaway():
     while not bot.is_closed:
         await asyncio.sleep(600)
         pickone = random.choice(user_list)
-        events_channel = bot.get_channel('466317894922272781')
+        events_channel = discord.utils.get(server.channels, name='events', type=discord.ChannelType.text)
         user_old_points = config.data.get('users').get(pickone).get('points')
         new_points = user_old_points + 10
         config.data['users'][pickone]['points'] = int(new_points)
@@ -118,8 +136,8 @@ async def giveaway():
         await bot.send_message(events_channel, embed=embed)
 
 
-async def purge_channel():
-    q_channel = bot.get_channel('466339353510150145')
+async def purge_channel(server):
+    q_channel = discord.utils.get(server.channels, name='questions', type=discord.ChannelType.text)
     await bot.send_message(q_channel, 'Channel will be purged in 5m.')
     await asyncio.sleep(15)
     mgs = []
@@ -136,7 +154,7 @@ async def purge_channel():
     return
 
 
-async def start_q_channel():
+async def start_q_channel(server):
     while not bot.is_closed:
         class Timer:
             timer = True
@@ -145,8 +163,8 @@ async def start_q_channel():
             await asyncio.sleep(30)
             Timer.timer = False
 
-        q_channel = bot.get_channel('466339353510150145')
-        events_channel = bot.get_channel('466317894922272781')
+        q_channel = discord.utils.get(server.channels, name='questions', type=discord.ChannelType.text)
+        events_channel = discord.utils.get(server.channels, name='events', type=discord.ChannelType.text)
         trivia_question = trivia.data.get('questions')
         question_list = []
         for question in trivia_question:
@@ -174,21 +192,21 @@ async def start_q_channel():
                                                                                          f' has answered "{question}" '
                                                 f'correctly and earned 10 points, they now have {new_points} points!')
                     await bot.send_message(events_channel, embed=event)
-                    bot.loop.create_task(purge_channel())
+                    bot.loop.create_task(purge_channel(server))
                 else:
                     guess = None
         if not guess:
             embed = discord.Embed(colour=discord.Colour(0xf20707),
                               description=f'Nobody got the question correct!')
             await bot.send_message(q_channel, embed=embed)
-            bot.loop.create_task(purge_channel())
+            bot.loop.create_task(purge_channel(server))
 
         await asyncio.sleep(120)
 
 
 @bot.command(pass_context=True)
 async def buy(ctx, message: str = None):
-    events_channel = bot.get_channel('466317894922272781')
+    events_channel = discord.utils.get(ctx.message.server.channels, name='events', type=discord.ChannelType.text)
     item_list = ['weak', 'skilled', 'frantic']
 
     if message is None:
@@ -293,8 +311,7 @@ async def store(ctx, message: str = None):
     for item in itemsort:
         description = config.data.get('items').get(item).get('description')
         category = config.data.get('items').get(item).get('group')
-        name = config.data.get('items').get(item).get('name')
-        items += f'{name} ({category})\n'
+        items += f'{item} ({category})\n'
         descriptions += f'{description}\n'
 
     embed.add_field(name='Item & category', value=items)
@@ -304,7 +321,7 @@ async def store(ctx, message: str = None):
 
 @bot.command(pass_context=True)
 async def pos(ctx, message: str = None):
-    events_channel = bot.get_channel('466317894922272781')
+    events_channel = discord.utils.get(ctx.message.server.channels, name='events', type=discord.ChannelType.text)
     if message is None:
         author = ctx.message.author
         leaderboard = sorted(users, key=lambda x: users[x]['points'], reverse=True)
@@ -377,7 +394,7 @@ async def points(ctx, message: str = None):
 
 @bot.command(pass_context=True)
 async def inventory(ctx, message: str = None):
-    events_channel = bot.get_channel('466317894922272781')
+    events_channel = discord.utils.get(ctx.message.server.channels, name='events', type=discord.ChannelType.text)
     if message is None:
         try:
             get_inventory = config.data.get('users').get(ctx.message.author.id).get('itemlist')
@@ -464,8 +481,8 @@ async def inventory(ctx, message: str = None):
                 return
 
 
-async def top10():
-    l_channel = bot.get_channel('467118734922874880')
+async def top10(server):
+    l_channel = discord.utils.get(server.channels, name='leaderboard', type=discord.ChannelType.text)
     await bot.wait_until_ready()
     while not bot.is_closed:
         async for message in bot.logs_from(l_channel):
@@ -494,7 +511,7 @@ async def top10():
         await asyncio.sleep(1800)
 
 
-async def item_timer(player, submessage):
+async def item_timer(player, emoji, server):
     counter = 0
     while True:
         user_list = []
@@ -506,10 +523,10 @@ async def item_timer(player, submessage):
             while randomperson == player:
                 randomperson = random.choice(user_list)
 
-        events_channel = bot.get_channel('466317894922272781')
+        events_channel = discord.utils.get(server.channels, name='events', type=discord.ChannelType.text)
         counter = counter + 1
         points = config.data.get('users').get(randomperson).get('points')
-        value = config.data.get('items').get(submessage).get('value')
+        value = config.data.get('items').get(emoji).get('value')
         new_points = points + value
         if new_points <= 0:
             new_points = 0
@@ -517,7 +534,7 @@ async def item_timer(player, submessage):
         config.save()
         embed = discord.Embed(colour=discord.Colour(0xc62828),
                               description=f'<@{player}> '
-                                          f'used <{submessage}> on <@{randomperson}>, they now have {new_points} points!')
+                                          f'used <{emoji}> on <@{randomperson}>, they now have {new_points} points!')
         await bot.send_message(events_channel, embed=embed)
 
         if counter == 10:
@@ -535,50 +552,55 @@ async def remove_item(player, item, amount):
 
 
 @bot.command(pass_context=True)
-async def use(ctx, message: str = None):
-    events_channel = bot.get_channel('466317894922272781')
+async def use(ctx, emoji: discord.Emoji):
+    events_channel = discord.utils.get(ctx.message.server.channels, name='events', type=discord.ChannelType.text)
+
     itemlist = config.data.get('items')
+
+    if isinstance(emoji, discord.Emoji):
+        emoji = emoji.name
+
     list_items = []
     for item in itemlist:
         list_items.append(item)
-    submessage = re.sub('[><]', '', message)
-    if submessage not in list_items:
+
+    if emoji not in list_items:
         await bot.say('Thats not an item')
         return
 
-    if submessage is None:
+    if emoji is None:
         await bot.say('you didn\'t try to use anything')
         return
 
-    if submessage in list_items:
-        above = config.data.get('items').get(submessage).get('above')
-        below = config.data.get('items').get(submessage).get('below')
-        cost = config.data.get('items').get(submessage).get('cost')
-        target = config.data.get('items').get(submessage).get('target')
-        value = config.data.get('items').get(submessage).get('value')
-        amount = config.data.get('users').get(ctx.message.author.id).get('itemlist').get(submessage)
-        description = config.data.get('items').get(submessage).get('description')
+    if emoji in list_items:
+        above = config.data.get('items').get(emoji).get('above')
+        below = config.data.get('items').get(emoji).get('below')
+        cost = config.data.get('items').get(emoji).get('cost')
+        target = config.data.get('items').get(emoji).get('target')
+        value = config.data.get('items').get(emoji).get('value')
+        amount = config.data.get('users').get(ctx.message.author.id).get('itemlist').get(emoji)
+        description = config.data.get('items').get(emoji).get('description')
 
         if amount == 0 or amount is None:
-            await bot.say(f'you have no {message} to use')
+            await bot.say(f'you have no {emoji} to use')
             return
 
         if cost is 5:
             embed = discord.Embed(colour=discord.Colour(0x00bcd4),
-                                  description=f'{ctx.message.author.mention} used {message} : "{description}"')
+                                  description=f'{ctx.message.author.mention} used {emoji} : "{description}"')
             await bot.send_message(events_channel, embed=embed)
         if cost is 15:
             embed = discord.Embed(colour=discord.Colour(0x1976d2),
-                                  description=f'{ctx.message.author.mention} used {message} : "{description}"')
+                                  description=f'{ctx.message.author.mention} used {emoji} : "{description}"')
             await bot.send_message(events_channel, embed=embed)
         if cost is 30:
             embed = discord.Embed(colour=discord.Colour(0x1a237e),
-                                  description=f'{ctx.message.author.mention} used {message} : "{description}"')
+                                  description=f'{ctx.message.author.mention} used {emoji} : "{description}"')
             await bot.send_message(events_channel, embed=embed)
 
         leaderboard = sorted(users, key=lambda x: users[x]['points'], reverse=True)
         position = leaderboard.index(ctx.message.author.id)
-
+        get_emoji = discord.utils.get(ctx.message.server.emojis, name=emoji)
         if target is None:
             if above is True:
                 if position is 0:
@@ -593,10 +615,10 @@ async def use(ctx, message: str = None):
                     config.data['users'][leaderboard[position-1]]['points'] = int(new_points_above)
                     config.save()
                     embed = discord.Embed(colour=discord.Colour(0xc62828),
-                                          description=f'{ctx.message.author.mention}\'s {message} just hit '
+                                          description=f'{ctx.message.author.mention}\'s {get_emoji} just hit '
                                           f'<@{leaderboard[position-1]}>! They now have {new_points_above} points!')
                     await bot.send_message(events_channel, embed=embed)
-            bot.loop.create_task(remove_item(ctx.message.author.id, submessage, amount))
+            bot.loop.create_task(remove_item(ctx.message.author.id, emoji, amount))
 
             if below is True:
                 if position + 1 == len(users):
@@ -611,26 +633,25 @@ async def use(ctx, message: str = None):
                     config.data['users'][leaderboard[position+1]]['points'] = int(new_points_below)
                     config.save()
                     embed = discord.Embed(colour=discord.Colour(0xc62828),
-                                          description=f'{ctx.message.author.mention}\'s {message} just hit '
+                                          description=f'{ctx.message.author.mention}\'s {get_emoji} just hit '
                                           f'<@{leaderboard[position+1]}>! They now have {new_points_below} points!')
                     await bot.send_message(events_channel, embed=embed)
                     return
 
         if target is not None:
             if target == "random":
-                if message == "<:ink:465333794354757632>":
-                    bot.loop.create_task(item_timer(ctx.message.author.id, submessage))
-                    bot.loop.create_task(remove_item(ctx.message.author.id, submessage, amount))
+                if emoji == "ink":
+                    bot.loop.create_task(item_timer(ctx.message.author.id, emoji, ctx.message.server))
+                    bot.loop.create_task(remove_item(ctx.message.author.id, emoji, amount))
                     return
 
-                if message == "<:sprinkler:466400415135825922>":
-                    bot.loop.create_task(item_timer(ctx.message.author.id, submessage))
-                    bot.loop.create_task(remove_item(ctx.message.author.id, submessage, amount))
+                if emoji == "sprinkler":
+                    bot.loop.create_task(item_timer(ctx.message.author.id, emoji, ctx.message.server))
+                    bot.loop.create_task(remove_item(ctx.message.author.id, emoji, amount))
                     return
 
-                if message == "<:boo:465654825187541002>":
-                    bot.loop.create_task(item_timer(ctx.message.author.id, submessage))
-
+                if emoji == "boo":
+                    bot.loop.create_task(item_timer(ctx.message.author.id, emoji, ctx.message.server))
                     return
 
                 else:
@@ -649,10 +670,10 @@ async def use(ctx, message: str = None):
                     config.data['users'][pick_random_user]['points'] = int(new_points_random)
                     config.save()
                     embed = discord.Embed(colour=discord.Colour(0xc62828),
-                                          description=f'{ctx.message.author.mention}\'s {message} hit '
+                                          description=f'{ctx.message.author.mention}\'s {get_emoji} hit '
                                           f'<@{pick_random_user}>! They now have {new_points_random} points!')
                     await bot.send_message(events_channel, embed=embed)
-                    bot.loop.create_task(remove_item(ctx.message.author.id, submessage, amount))
+                    bot.loop.create_task(remove_item(ctx.message.author.id, emoji, amount))
                     return
 
             if target == "all":
@@ -661,15 +682,15 @@ async def use(ctx, message: str = None):
 
             if target == "self":
                 points_old_self = config.data.get('users').get(ctx.message.author.id).get('points')
-                value = config.data.get('items').get(submessage).get('value')
+                value = config.data.get('items').get(emoji).get('value')
                 new_points_self = points_old_self + value
                 config.data['users'][ctx.message.author.id]['points'] = int(new_points_self)
                 config.save()
                 embed = discord.Embed(colour=discord.Colour(0xc62828),
-                                      description=f'{ctx.message.author.mention}\'s used {message} and gained '
+                                      description=f'{ctx.message.author.mention}\'s used {get_emoji} and gained '
                                                   f'{value} points, for a total of {new_points_self} points.')
                 await bot.send_message(events_channel, embed=embed)
-                bot.loop.create_task(remove_item(ctx.message.author.id, submessage, amount))
+                bot.loop.create_task(remove_item(ctx.message.author.id, emoji, amount))
                 return
 
             if target == "steal":
@@ -712,16 +733,16 @@ async def use(ctx, message: str = None):
                     config.data['users'][ctx.message.author.id]['itemlist'][item_to_steal] = 1
                 config.save()
 
-                value = config.data.get('items').get(submessage).get('value')
+                value = config.data.get('items').get(emoji).get('value')
                 if value > 0:
                     get_points = config.data.get('users').get(ctx.message.author.id).get('points')
                     new_points = get_points + value
                     config.data['users'][ctx.message.author.id]['points'] = new_points
                 config.save()
-                await remove_item(ctx.message.author.id, submessage, amount)
+                await remove_item(ctx.message.author.id, emoji, amount)
                 name = config.data.get('items').get(item_to_steal).get('name')
                 embed = discord.Embed(colour=discord.Colour(0xc62828),
-                                      description=f'{ctx.message.author.mention}\'s {message} hit '
+                                      description=f'{ctx.message.author.mention}\'s {get_emoji} hit '
                                                   f'<@{target}> and stole {name}!')
                 await bot.send_message(events_channel, embed=embed)
 
@@ -743,7 +764,7 @@ async def use(ctx, message: str = None):
                     return
 
                 if len(mention_list) == 1:
-                    bot.loop.create_task(remove_item(ctx.message.author.id, submessage, amount))
+                    bot.loop.create_task(remove_item(ctx.message.author.id, emoji, amount))
                     target = mention_list[0]
                     points_old = config.data.get('users').get(target).get('points')
                     new_points_target = int(points_old) + int(value)
@@ -752,7 +773,7 @@ async def use(ctx, message: str = None):
                     config.data['users'][target]['points'] = int(new_points_target)
                     config.save()
                     embed = discord.Embed(colour=discord.Colour(0xc62828),
-                                          description=f'{ctx.message.author.mention}\'s {message} just hit <@{target}>!'
+                                          description=f'{ctx.message.author.mention}\'s {get_emoji} just hit <@{target}>!'
                                                       f' They now have {new_points_target} points!')
                     await bot.send_message(events_channel, embed=embed)
                     return
@@ -761,14 +782,14 @@ async def use(ctx, message: str = None):
                 if position == 0:
                     await bot.say('you cant use this, you are in first')
                     return
-                bot.loop.create_task(remove_item(ctx.message.author.id, submessage, amount))
+                bot.loop.create_task(remove_item(ctx.message.author.id, emoji, amount))
                 leaderboard = sorted(users, key=lambda x: users[x]['points'], reverse=True)
                 points_old = config.data.get('users').get(leaderboard[0]).get('points')
                 new_points = points_old + value
                 config.data['users'][leaderboard[0]]['points'] = int(new_points)
                 config.save()
                 embed = discord.Embed(colour=discord.Colour(0xc62828),
-                                      description=f'{ctx.message.author.mention}\'s {message} just hit '
+                                      description=f'{ctx.message.author.mention}\'s {get_emoji} just hit '
                                                   f'<@{leaderboard[0]}>! They now have {new_points} points!')
                 await bot.send_message(events_channel, embed=embed)
                 return
