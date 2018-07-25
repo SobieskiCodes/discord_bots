@@ -3,146 +3,212 @@
         "token": ""
     },
     "items": {
-        ":bana:465333453366362113": {
+        "bana": {
             "above": false,
             "below": true,
             "cost": 5,
             "description": "-1pt from player below you",
+            "group": "weak",
             "name": ":bana:",
             "target": null,
             "value": -1
         },
-        ":blueshell:465654923065950219": {
+        "blueshell": {
             "above": false,
             "below": true,
             "cost": 15,
-            "description": "-10pts from player in first",
+            "description": "-10 pts from player in first",
+            "group": "skilled",
             "name": ":blueshell:",
             "target": "top",
             "value": -10
         },
-        ":bobbomb:465655006113300482": {
+        "bobbomb": {
             "above": false,
             "below": true,
             "cost": 15,
             "description": "-10pts from player below you",
+            "group": "skilled",
             "name": ":bobbomb:",
             "target": null,
             "value": -10
         },
-        ":boo:465654825187541002": {
+        "boo": {
             "above": false,
             "below": false,
             "cost": 15,
             "description": "Steal another players item.",
+            "group": "skilled",
             "name": ":boo:",
-            "target": "random",
+            "target": "steal",
             "value": 0
         },
-        ":boomush:465522158483931137": {
+        "boomush": {
             "above": false,
             "below": false,
-            "cost": 5,
-            "description": "Steal someone elses item and +3pts to self",
+            "cost": 15,
+            "description": "Steal someone else's item and +3pts to self",
+            "group": "skilled",
             "name": ":boomush:",
-            "target": "self",
+            "target": "steal",
             "value": 3
         },
-        ":bshell:465333155377709059": {
+        "bowser": {
+            "above": false,
+            "below": false,
+            "cost": 30,
+            "description": "-30pts from random player",
+            "group": "frantic",
+            "name": ":bowser:",
+            "target": "random",
+            "value": -30
+        },
+        "bshell": {
             "above": false,
             "below": false,
             "cost": 5,
             "description": "-5pts from random player",
+            "group": "weak",
             "name": ":bshell:",
             "target": "random",
             "value": -5
         },
-        ":chomp:465654751070257152": {
+        "chomp": {
             "above": false,
             "below": true,
             "cost": 5,
             "description": "-2pts from player below you",
-            "name": ":gbana:",
+            "group": "weak",
+            "name": ":chomp:",
             "target": null,
             "value": -2
         },
-        ":gbana:465652878573436932": {
+        "gbana": {
             "above": false,
             "below": true,
             "cost": 5,
             "description": "-2pts from player below you",
+            "group": "weak",
             "name": ":gbana:",
             "target": null,
             "value": -2
         },
-        ":goldshell:465654859987812365": {
+        "goldshell": {
             "above": false,
             "below": false,
             "cost": 15,
             "description": "-10pts from random player",
+            "group": "skilled",
             "name": ":goldshell:",
             "target": "random",
             "value": -10
         },
-        ":gshell:465333388446793728": {
+        "gshell": {
             "above": false,
             "below": false,
             "cost": 5,
             "description": "-1pts from random player",
+            "group": "weak",
             "name": ":gshell:",
             "target": "random",
             "value": -1
         },
-        ":ink:465333794354757632": {
+        "ink": {
             "above": false,
             "below": false,
-            "cost": 5,
-            "description": "-1pt random player every 3m for 30m",
+            "cost": 15,
+            "description": "-1pts random player every 3m for 30m",
+            "group": "skilled",
             "name": ":ink:",
             "target": "random",
             "value": -1
         },
-        ":puff:465333243630190593": {
+        "megamush": {
+            "above": false,
+            "below": false,
+            "cost": 15,
+            "description": "15pts to self",
+            "group": "skilled",
+            "name": ":megamush:",
+            "target": "self",
+            "value": 20
+        },
+        "minimush": {
+            "above": false,
+            "below": false,
+            "cost": 30,
+            "description": "-20pts from random player",
+            "group": "frantic",
+            "name": ":minimush:",
+            "target": "random",
+            "value": -20
+        },
+        "puff": {
             "above": false,
             "below": false,
             "cost": 5,
             "description": "-3pts from random player",
+            "group": "weak",
             "name": ":puff:",
             "target": "random",
             "value": -3
         },
-        ":rshell:465333339155595264": {
+        "rshell": {
             "above": false,
             "below": false,
             "cost": 5,
             "description": "-3pts from target player",
+            "group": "weak",
             "name": ":rshell:",
             "target": "targeted",
             "value": -3
         },
-        ":smoke:465322861209583624": {
+        "smoke": {
             "above": true,
             "below": true,
             "cost": 5,
             "description": "-3pts from players above and below",
+            "group": "weak",
             "name": ":smoke:",
             "target": null,
             "value": -3
         },
-        ":tack:464785937902338058": {
+        "splat": {
+            "above": true,
+            "below": true,
+            "cost": 30,
+            "description": "-10 pts from player below and above",
+            "group": "frantic",
+            "name": ":splat:",
+            "target": null,
+            "value": -10
+        },
+        "sprinkler": {
+            "above": false,
+            "below": false,
+            "cost": 30,
+            "description": "-3pts random player every 3m for 30m",
+            "group": "frantic",
+            "name": ":sprinkler:",
+            "target": "random",
+            "value": -3
+        },
+        "tack": {
             "above": false,
             "below": true,
             "cost": 5,
             "description": "-4pts from player below you",
+            "group": "weak",
             "name": ":tack:",
             "target": null,
             "value": -4
         },
-        ":tornado:464947045594169354": {
+        "tornado": {
             "above": true,
             "below": false,
             "cost": 5,
             "description": "-5pts from player above you",
+            "group": "weak",
             "name": ":tornado:",
             "target": null,
             "value": -5
@@ -151,171 +217,27 @@
     "users": {
         "106916819922587648": {
             "itemlist": {},
-            "points": 55
-        },
-        "115707766714138627": {
-            "itemlist": {},
-            "points": 44
-        },
-        "129404225720418304": {
-            "itemlist": {},
-            "points": 14
-        },
-        "131935264699318272": {
-            "itemlist": {},
-            "points": 16
-        },
-        "134151959031709696": {
-            "itemlist": {},
-            "points": 12
-        },
-        "144149882460962816": {
-            "itemlist": {},
-            "points": 16
-        },
-        "155440937835692032": {
-            "itemlist": {},
-            "points": 12
-        },
-        "156923437649100800": {
-            "itemlist": {},
-            "points": 36
-        },
-        "187231079894220800": {
-            "itemlist": {},
-            "points": 56
-        },
-        "189566047253168128": {
-            "itemlist": {},
-            "points": 21
-        },
-        "193762270105305089": {
-            "itemlist": {},
-            "points": 14
-        },
-        "194122214822510592": {
-            "itemlist": {},
-            "points": 16
-        },
-        "203268134558236672": {
-            "itemlist": {},
-            "points": 10
-        },
-        "209759755688869890": {
-            "itemlist": {},
-            "points": 27
-        },
-        "214574573293797376": {
-            "itemlist": {},
-            "points": 40
-        },
-        "215701840120119296": {
-            "itemlist": {},
-            "points": 22
+            "points": 170
         },
         "231587988323172352": {
-            "itemlist": {
-                ":tack:464785937902338058": 1,
-                ":tornado:464947045594169354": 1
-            },
-            "points": 44
-        },
-        "242442670184595459": {
             "itemlist": {},
-            "points": 11
-        },
-        "243817011422035969": {
-            "itemlist": {},
-            "points": 32
+            "points": 115
         },
         "245276992432373760": {
-            "itemlist": {
-                ":ink:465333794354757632": 5
-            },
-            "points": 60
-        },
-        "249830363663171586": {
             "itemlist": {},
-            "points": 12
-        },
-        "279296762265600000": {
-            "itemlist": {},
-            "points": 14
-        },
-        "281993939748388865": {
-            "itemlist": {},
-            "points": 15
-        },
-        "284570031487057921": {
-            "itemlist": {},
-            "points": 11
-        },
-        "285171172386144256": {
-            "itemlist": {},
-            "points": 15
-        },
-        "295991595705303041": {
-            "itemlist": {},
-            "points": 12
-        },
-        "299986898661801986": {
-            "itemlist": {},
-            "points": 14
-        },
-        "304129450696769537": {
-            "itemlist": {},
-            "points": 22
-        },
-        "313176613225496576": {
-            "itemlist": {},
-            "points": 23
+            "points": 75
         },
         "323960486544670730": {
-            "itemlist": {
-                ":tack:": 1,
-                ":tornado:": 0
-            },
-            "points": 41
-        },
-        "329064535459889152": {
             "itemlist": {},
-            "points": 14
+            "points": 72
         },
         "340894480628449290": {
             "itemlist": {},
-            "points": 63
-        },
-        "346503259189411840": {
-            "itemlist": {},
-            "points": 11
+            "points": 52
         },
         "352973114969292802": {
             "itemlist": {},
-            "points": 40
-        },
-        "371801273953026050": {
-            "itemlist": {},
-            "points": 13
-        },
-        "377227636578975745": {
-            "itemlist": {},
-            "points": 50
-        },
-        "377540160625311755": {
-            "itemlist": {},
-            "points": 52
-        },
-        "390571333786009600": {
-            "itemlist": {},
-            "points": 41
-        },
-        "413655560206942228": {
-            "itemlist": {},
-            "points": 23
-        },
-        "95574629036326912": {
-            "itemlist": {},
-            "points": 43
+            "points": 122
         }
     }
 }
