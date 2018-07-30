@@ -2,6 +2,7 @@ from discord.ext import commands
 import discord
 import asyncio
 import pyson
+
 config = pyson.Pyson('tasks.json')
 tasks = config.data.get('tasklist')
 token = 'token'
@@ -24,14 +25,18 @@ async def connect():
             await asyncio.sleep(5)
 
 
-@bot.command(pass_context=True)
-async def task(ctx, task_name: str = None,):
+@bot.command(pass_context=True, aliases=['tl', 'tasklist'])
+async def task(ctx, task_name: str = None, ):
     """!task - lists all tasks not closed, if followed by task will give details for said task
-    
+
     example:
     !task will produce all tasks
     !task "name" will produce info for said task eg; !task "task 11"
     """
+    if not tasks:
+        await bot.say("It seems there are no tasks added, try !addtask")
+        return
+    
     if task_name is None:
         embed = discord.Embed(title="Task List", colour=discord.Colour(0x278d89))
         task_to_do = ''
@@ -128,7 +133,7 @@ async def close(ctx, task: str = None):
         if get_status == "closed":
             await bot.say(f"'{task}' is already closed.")
             return
-        
+
         config.data['tasklist'][f'{task}'][f'{get_status}'] = "closed"
         config.save()
         await bot.say(f"Closed '{task}'")
