@@ -36,14 +36,13 @@ async def task(ctx, task_name: str = None, ):
     if not tasks:
         await bot.say("It seems there are no tasks added, try !addtask")
         return
-    
+
     if task_name is None:
         embed = discord.Embed(title="Task List", colour=discord.Colour(0x278d89))
         task_to_do = ''
         task_status = ''
         assign_list = ''
         for task_item in tasks:
-            get_description = tasks.get(task_item).get('todo')
             get_status = tasks.get(task_item).get('status')
             get_assigned = tasks.get(task_item).get('assigned_to')
             if get_status != "closed":
@@ -52,6 +51,10 @@ async def task(ctx, task_name: str = None, ):
                 assign_list += f'**Assigned To:** {get_assigned}\n'
             else:
                 pass
+            
+        if not task_to_do:
+            await bot.say('No open tasks.')
+            return
 
         embed.add_field(name='Task', value=task_to_do)
         embed.add_field(name='Status', value=task_status)
@@ -80,7 +83,6 @@ async def closed(ctx):
     task_status = ''
     assign_list = ''
     for task in tasks:
-        get_description = tasks.get(task).get('todo')
         get_status = tasks.get(task).get('status')
         get_assigned = tasks.get(task).get('assigned_to')
         if get_status == "closed":
@@ -119,6 +121,9 @@ async def addtask(ctx, task_name: str = None, task_description: str = None, stat
     new_task = {f"todo": str(task_description), "status": str(status), "assigned_to": str(assigned)}
     config.data['tasklist'][f'{task_name}'] = new_task
     config.save()
+    embed = discord.Embed(title="Task Added", description=f"Task: {task_name}\nStatus: {status}\nDescription: "
+                                f"{task_description}\n" f"Assigned To: {assigned}\n", colour=discord.Colour(0x278d89))
+    await bot.say(embed=embed)
 
 
 @bot.command(pass_context=True)
@@ -134,7 +139,7 @@ async def close(ctx, task: str = None):
             await bot.say(f"'{task}' is already closed.")
             return
 
-        config.data['tasklist'][f'{task}'][f'{get_status}'] = "closed"
+        config.data['tasklist'][f'{task}']['status'] = "closed"
         config.save()
         await bot.say(f"Closed '{task}'")
     else:
