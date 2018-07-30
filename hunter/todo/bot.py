@@ -46,9 +46,9 @@ async def task(ctx, task_name: str = None, ):
             get_status = tasks.get(task_item).get('status')
             get_assigned = tasks.get(task_item).get('assigned_to')
             if get_status != "closed":
-                task_to_do += f'**Task:** {task_item}\n'
-                task_status += f'**Status:** {get_status}\n'
-                assign_list += f'**Assigned To:** {get_assigned}\n'
+                task_to_do += f'**Task:** {task_item} \n'
+                task_status += f'**Status:** {get_status} \n'
+                assign_list += f'**Assigned To:** {get_assigned} \n'
             else:
                 pass
 
@@ -61,14 +61,17 @@ async def task(ctx, task_name: str = None, ):
         embed.add_field(name='Assigned To', value=assign_list)
         await bot.say(embed=embed)
         return
-
+    task_name = task_name.lower()
     if task_name:
-        if task_name in tasks:
+        tasklistlower = list(item.lower() for item in tasks)
+        if task_name in tasklistlower:
             get_description = tasks.get(task_name).get('todo')
             get_status = tasks.get(task_name).get('status')
             get_assigned = tasks.get(task_name).get('assigned_to')
-            await bot.say(f'**Task Name**: {task_name} **Description**: {get_description} '
-                          f'**Status**: {get_status} **Assigned to**: {get_assigned}')
+            embed = discord.Embed(title=f"{task_name}", description=f"Task: {task_name}\n Status: {get_status}\n"
+                                                                    f"Description: {get_description}\nAssigned To: "
+                                                                    f"{get_assigned}\n", colour=discord.Colour(0x278d89))
+            await bot.say(embed=embed)
             return
         else:
             await bot.say(f"Couldn\'t find task '{task_name}'")
@@ -121,6 +124,7 @@ async def addtask(ctx, task_name: str = None, task_description: str = None, assi
                                 f"{task_description}\n" f"Assigned To: {assigned}\n", colour=discord.Colour(0x278d89))
     await bot.say(embed=embed)
 
+
 @bot.command(pass_context=True)
 async def status(ctx, task: str = None, status: str = None):
     """!status "task" - changes task status."""
@@ -131,10 +135,13 @@ async def status(ctx, task: str = None, status: str = None):
         await bot.say('Please provide a status to change to.')
         return
 
-    if task in tasks:
-        config.data['tasklist'][f'{task}']['status'] = status
-        config.save()
-        await bot.say(f"status of '{task}' changed to '{status}'")
+    task_name = task.lower()
+    if task_name:
+        tasklistlower = list(item.lower() for item in tasks)
+        if task_name in tasklistlower:
+            config.data['tasklist'][f'{task}']['status'] = status
+            config.save()
+            await bot.say(f"status of '{task}' changed to '{status}'")
     else:
         await bot.say(f"I couldn\'t find task '{task}'")
         return
@@ -147,11 +154,14 @@ async def close(ctx, task: str = None):
         await bot.say('No task supplied!')
         return
 
-    if task in tasks:
-        get_status = tasks.get(task).get('status')
-        if get_status == "closed":
-            await bot.say(f"'{task}' is already closed.")
-            return
+    task_name = task.lower()
+    if task_name:
+        tasklistlower = list(item.lower() for item in tasks)
+        if task_name in tasklistlower:
+            get_status = tasks.get(task).get('status')
+            if get_status == "closed":
+                await bot.say(f"'{task}' is already closed.")
+                return
 
         config.data['tasklist'][f'{task}']['status'] = "closed"
         config.save()
