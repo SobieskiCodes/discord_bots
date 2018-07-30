@@ -51,7 +51,7 @@ async def task(ctx, task_name: str = None, ):
                 assign_list += f'**Assigned To:** {get_assigned}\n'
             else:
                 pass
-            
+
         if not task_to_do:
             await bot.say('No open tasks.')
             return
@@ -98,20 +98,16 @@ async def closed(ctx):
 
 
 @bot.command(pass_context=True)
-async def addtask(ctx, task_name: str = None, task_description: str = None, status: str = None, assigned: str = None):
-    """!addtask <taskname> <task description> <status> <assigned>
-    all variables need to be wrapped in quotes eg !addtask "task name here" "task description" "status" "assigned to"
-    assigned to needs to be a string, not a mention eg; "probsjustin"
-    status must be, open, closed, or need more info.
+async def addtask(ctx, task_name: str = None, task_description: str = None, assigned: str = None, status="open"):
+    """!addtask <taskname> <task description> <assigned> <status>
+    All variables need to be wrapped in quotes eg !addtask "task name here" "task description" "status" "assigned to"
+    Assigned to needs to be a string, not a mention eg; "probsjustin"
+    Assigned is optional
     example:
-    !addtask "finish website" "finish the about page" "open" "probsjustin"
+    !addtask "finish website" "finish the about page" ["probsjustin"]
     """
-    if not task_name or not task_description or not status or not assigned:
-        await bot.say("Incorrect format, <addtask> <task name> <task description> <status> <assigned>")
-
-    status_choices = ['closed', 'open', 'need more info']
-    if status.lower() not in status_choices:
-        await bot.say("Valid status is, closed, open, or need more info.")
+    if not task_name or not task_description:
+        await bot.say("Incorrect format, <addtask> <task name> <task description> [<assigned>] [<status>]")
         return
 
     if task_name in tasks:
@@ -124,6 +120,24 @@ async def addtask(ctx, task_name: str = None, task_description: str = None, stat
     embed = discord.Embed(title="Task Added", description=f"Task: {task_name}\nStatus: {status}\nDescription: "
                                 f"{task_description}\n" f"Assigned To: {assigned}\n", colour=discord.Colour(0x278d89))
     await bot.say(embed=embed)
+
+@bot.command(pass_context=True)
+async def status(ctx, task: str = None, status: str = None):
+    """!status "task" - changes task status."""
+    if not task:
+        await bot.say('No task supplied!')
+        return
+    if not status:
+        await bot.say('Please provide a status to change to.')
+        return
+
+    if task in tasks:
+        config.data['tasklist'][f'{task}']['status'] = status
+        config.save()
+        await bot.say(f"status of '{task}' changed to '{status}'")
+    else:
+        await bot.say(f"I couldn\'t find task '{task}'")
+        return
 
 
 @bot.command(pass_context=True)
