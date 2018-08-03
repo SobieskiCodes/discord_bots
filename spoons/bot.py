@@ -1,6 +1,7 @@
 from discord.ext import commands
 import discord
 import pyson
+import time
 
 config = pyson.Pyson('lfc.json')
 token = config.data.get('config').get('token')
@@ -15,6 +16,14 @@ async def on_ready():
     print(f'https://discordapp.com/oauth2/authorize?client_id={bot.user.id}&scope=bot&permissions=16')
     print('------')
 
+async def connect():
+    print('Logging in...')
+    try:
+        await bot.start(token)
+    except:
+        print('Failed to login.')
+        bot.loop.close()
+        
 
 @bot.command()
 async def lfc(ctx, ship_name: str=None, amount: str=None):
@@ -100,4 +109,13 @@ async def done(ctx: str=None, chan: str=None):
         await ctx.send('You dont seem to have a created channel.')
         return
 
-bot.run(token)
+
+def start_bot():
+    while not bot.is_closed:
+        try:
+            bot.loop.run_until_complete(connect())
+        except:
+            time.sleep(90)
+
+
+start_bot()
