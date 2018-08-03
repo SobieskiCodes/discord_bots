@@ -8,6 +8,14 @@ token = config.data.get('config').get('token')
 bot = commands.Bot(command_prefix='!')
 
 
+async def connect():
+    print('Logging in...')
+    try:
+        await bot.start(token)
+    except:
+        print('Failed to login.')
+        bot.loop.close()
+
 @bot.event
 async def on_ready():
     print('Logged in as')
@@ -16,14 +24,6 @@ async def on_ready():
     print(f'https://discordapp.com/oauth2/authorize?client_id={bot.user.id}&scope=bot&permissions=16')
     print('------')
 
-async def connect():
-    print('Logging in...')
-    try:
-        await bot.start(token)
-    except:
-        print('Failed to login.')
-        bot.loop.close()
-        
 
 @bot.command()
 async def lfc(ctx, ship_name: str=None, amount: str=None):
@@ -111,7 +111,8 @@ async def done(ctx: str=None, chan: str=None):
 
 
 def start_bot():
-    while not bot.is_closed:
+    while not bot.is_closed():
+        print('made it')
         try:
             bot.loop.run_until_complete(connect())
         except:
